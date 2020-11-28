@@ -40,7 +40,7 @@ wss.on('connection', (ws: WebSocket) => {
     ws.on('message', async (message: string) => {
 
         console.log('received: %s', message);
-        let message_array = message.split(' ')
+        let message_array = message.split('=')
         switch(message_array[0]){
           case "Altura":{
             update("Altura", message_array[1])
