@@ -1,7 +1,7 @@
 import * as express from 'express';
 import * as http from 'http';
 import * as WebSocket from 'ws';
-
+import * as DataBaseTool from 'DatabaseTool'
 // DATABASE
 
 const { Pool, Client } = require('pg')
@@ -20,6 +20,7 @@ const client = new Client({
   password: 'admin',
   port: 5432,
 })
+
 const con = client.connect()
 
 const app = express();
@@ -74,7 +75,6 @@ wss.on('connection', (ws: WebSocket) => {
     });
 
     //send immediatly a feedback to the incoming connection  
-    ws.send("hola")  
     ws.send(getAll());
 });
 
@@ -98,5 +98,7 @@ function getAll(){
 
 function broadcast_updated_info(){
   wss.clients.forEach(client => {
-    client.send(getAll())})
+    const actual_values = getAll()
+    client.send(actual_values);
+  })
 }
