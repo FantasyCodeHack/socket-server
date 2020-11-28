@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
+const rxjs_1 = require("rxjs");
 // DATABASE
 const { Pool, Client } = require('pg');
 const pool = new Pool({
@@ -39,7 +40,7 @@ wss.on('connection', (ws) => {
     //connection is up, let's add a simple simple event
     ws.on('message', (message) => __awaiter(void 0, void 0, void 0, function* () {
         console.log('received: %s', message);
-        let message_array = message.split(' ');
+        let message_array = message.split('=');
         switch (message_array[0]) {
             case "Altura": {
                 update("Altura", message_array[1]);
@@ -72,9 +73,8 @@ wss.on('connection', (ws) => {
         }
         broadcast_updated_info();
     }));
-    //send immediatly a feedback to the incoming connection  
-    ws.send("hola");
-    ws.send(getAll());
+    //send immediatly a feedback to the incoming connection
+    getAll().subscribe(data => ws.send(data));
 });
 //start our server
 server.listen(process.env.PORT || 8999, () => {
@@ -87,16 +87,28 @@ function update(column, value) {
             throw err;
     });
 }
+/*
+function getAll(){
+  client.query("SELECT * FROM public.\"Geometria\"", function(err:any, result:any, fields:any){
+    if (err) throw err;
+    console.log(JSON.stringify(result.rows[0]))
+    return JSON.stringify(result.rows[0]);
+  })
+}*/
 function getAll() {
-    client.query("SELECT * FROM public.\"Geometria\"", function (err, result, fields) {
-        if (err)
-            throw err;
-        return result.rows[0];
+    let observable = new rxjs_1.Observable(subscriber => {
+        client.query("SELECT * FROM public.\"Geometria\"", function (err, result, fields) {
+            if (err)
+                throw err;
+            console.log(JSON.stringify(result.rows[0]));
+            subscriber.next(JSON.stringify(result.rows[0]));
+        });
     });
+    return observable;
 }
 function broadcast_updated_info() {
     wss.clients.forEach(client => {
-        client.send(getAll());
+        getAll().subscribe(data => client.send(data));
     });
 }
 //# sourceMappingURL=server.js.map

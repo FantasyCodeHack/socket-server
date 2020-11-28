@@ -1,7 +1,7 @@
 import * as express from 'express';
 import * as http from 'http';
 import * as WebSocket from 'ws';
-import * as DataBaseTool from 'DatabaseTool'
+import { Observable, of, Subscriber } from 'rxjs';
 // DATABASE
 
 const { Pool, Client } = require('pg')
@@ -74,8 +74,9 @@ wss.on('connection', (ws: WebSocket) => {
         broadcast_updated_info()
     });
 
-    //send immediatly a feedback to the incoming connection  
-    ws.send(getAll());
+    //send immediatly a feedback to the incoming connection
+
+    getAll().subscribe(data => ws.send(data))
 });
 
 //start our server
@@ -88,17 +89,28 @@ function update(column: string, value: any){
     if (err) throw err;
   })
 }
-  
+/*  
 function getAll(){
   client.query("SELECT * FROM public.\"Geometria\"", function(err:any, result:any, fields:any){
     if (err) throw err;
-    return result.rows[0]
+    console.log(JSON.stringify(result.rows[0]))
+    return JSON.stringify(result.rows[0]); 
   })
+}*/
+
+function getAll() : Observable<any>{
+  let observable = new Observable(subscriber => {
+    client.query("SELECT * FROM public.\"Geometria\"", function(err:any, result:any, fields:any){
+      if (err) throw err;
+      console.log(JSON.stringify(result.rows[0]))
+      subscriber.next(JSON.stringify(result.rows[0])); 
+    })
+  })
+  return observable;
 }
 
 function broadcast_updated_info(){
   wss.clients.forEach(client => {
-    const actual_values = getAll()
-    client.send(actual_values);
+    getAll().subscribe(data => client.send(data))
   })
 }
