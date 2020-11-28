@@ -12,5 +12,7 @@
     "exclude": [
         "dist",
         "node_modules"
-    ]
+    ],
+    "allowJs": true,
+    "strictPropertyInitialization": false
 }
