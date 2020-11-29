@@ -67,6 +67,7 @@ wss.on('connection', (ws: WebSocket) => {
             break
           }
           case "Color":{
+            console.log(message_array[1])
             update("Color", message_array[1])
             break
           }
@@ -85,7 +86,7 @@ server.listen(process.env.PORT || 8999, () => {
 });
 
 function update(column: string, value: any){
-  client.query(`UPDATE public."Geometria" SET "` + column + `"=` + value +`;`, function(err:any, result:any, fields:any){
+  client.query(`UPDATE public."Geometria" SET "` + column + `"='` + value +`';`, function(err:any, result:any, fields:any){
     if (err) throw err;
   })
 }

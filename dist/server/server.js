@@ -67,6 +67,7 @@ wss.on('connection', (ws) => {
                 break;
             }
             case "Color": {
+                console.log(message_array[1]);
                 update("Color", message_array[1]);
                 break;
             }
@@ -82,7 +83,7 @@ server.listen(process.env.PORT || 8999, () => {
     console.log('Server started on port a' + ((_a = server.address()) === null || _a === void 0 ? void 0 : _a.toString()));
 });
 function update(column, value) {
-    client.query(`UPDATE public."Geometria" SET "` + column + `"=` + value + `;`, function (err, result, fields) {
+    client.query(`UPDATE public."Geometria" SET "` + column + `"='` + value + `';`, function (err, result, fields) {
         if (err)
             throw err;
     });
