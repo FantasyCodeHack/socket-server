@@ -74,8 +74,12 @@ wss.on('connection', (ws) => {
         }
         broadcast_updated_info();
     }));
+    ws.on('close', () => {
+        broadcast_updated_info();
+    });
     //send immediatly a feedback to the incoming connection
-    getAll().subscribe(data => ws.send(data));
+    broadcast_updated_info();
+    //  getAll().subscribe(data => ws.send(data))
 });
 //start our server
 server.listen(process.env.PORT || 8999, () => {
@@ -102,10 +106,15 @@ function getAll() {
             if (err)
                 throw err;
             console.log(JSON.stringify(result.rows[0]));
+            result.rows[0]['clients'] = getClients();
             subscriber.next(JSON.stringify(result.rows[0]));
         });
     });
     return observable;
+}
+function getClients() {
+    console.log(wss.clients.size);
+    return wss.clients.size;
 }
 function broadcast_updated_info() {
     wss.clients.forEach(client => {
